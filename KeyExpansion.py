@@ -91,7 +91,7 @@ class KeyExpansion:
 
         return xorKey
     
-    def makeRounKey(self):
+    def makeRoundKey(self):
         for i in range(self.countRound):
             xorKey = self.xorSubAndCurrent()
             self.rawCurrentKey = xorKey
@@ -99,7 +99,7 @@ class KeyExpansion:
 
 external_key = "H-2 Menuju UTS Semangat" ## Kunci 16 karakter atau lebih
 key_expansion = KeyExpansion(external_key, 16)
-key_expansion.makeRounKey()
+key_expansion.makeRoundKey()
 print(key_expansion.roundKey)
 
 
