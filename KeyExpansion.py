@@ -42,8 +42,8 @@ class KeyExpansion:
         self.rawCurrentKey.append(temp)
         
     
-    def getCurrentKey(self):                          #Return Current Key 128 bit with representation hexadecimal string f'0x'
-        return self.roundKey[len(self.roundKey)-1]
+    def getKey(self, round):         # round = round ke berapa          
+        return self.roundKey[round]         #Return Current Key 128 bit with representation hexadecimal string f'0x'
     
     def concatCurrentKey(self):
         concat = f'0x'
@@ -101,5 +101,6 @@ external_key = "H-2 Menuju UTS Semangat" ## Kunci 16 karakter atau lebih
 key_expansion = KeyExpansion(external_key, 16)
 key_expansion.makeRoundKey()
 print(key_expansion.roundKey)
+print(key_expansion.getKey(4))
 
 
