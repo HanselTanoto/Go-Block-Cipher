@@ -1,6 +1,32 @@
 ENCRYPT = 1
 DECRYPT = 0
 
+S_BOX = ['ee', 'e0', '9e', '56', '96', '29', 'ce', 'a9', '19', '14', '31', '02', '53', 'd0', '2a', 'ab', 
+         '6e', '95', '1f', '27', 'c0', '90', '85', '33', 'a8', '66', '5a', '7e', '41', '40', '76', '84', 
+         '8b', 'fa', '81', 'c8', '6b', '0f', 'c3', '30', '5f', '62', 'df', '3f', 'de', '2f', 'fc', '5d', 
+         '9f', 'f4', '0d', 'e1', 'b3', 'f2', '92', 'e5', '34', 'd1', '06', '28', 'ca', 'c5', '60', 'c9', 
+         '9a', '15', '13', '86', 'd6', '7b', 'd9', '8a', '25', '3b', '8c', '99', 'e6', 'f9', 'da', '42', 
+         '35', '8f', 'a7', '70', 'cf', '22', '7f', '75', '97', 'e2', '9d', '2c', 'b2', 'ac', '0e', '88', 
+         '3a', 'a6', 'be', 'f6', '7c', 'a3', 'b9', '26', '00', 'a2', 'ad', '93', '17', '51', 'b4', 'd3', 
+         '91', 'a4', 'd4', '83', '77', '69', 'a0', 'ff', '0c', 'e4', 'a5', '43', 'c2', 'b0', '46', '1c', 
+         '67', 'e9', '68', '6f', '09', '49', '2b', '47', 'dd', 'd2', 'fe', '54', '01', '04', '38', '10', 
+         '72', 'b1', '4a', '23', '4b', 'c7', 'dc', '89', '21', 'aa', '94', '52', '71', '61', '45', '24', 
+         '74', '44', '57', '6d', '0a', '03', '0b', '11', 'f7', 'ef', '82', '18', 'e8', '39', '48', 'f5', 
+         'b7', 'd7', 'bb', '50', '20', '8d', '37', '4e', '07', 'b6', 'cb', 'ae', '78', 'bc', '55', 'b8', 
+         '6c', 'af', '2d', 'ec', 'f3', '65', '1a', '59', 'f1', 'f0', '9b', 'fb', '73', 'cd', '3c', 'bf', 
+         '2e', 'a1', '4f', '05', 'd5', '5b', '8e', '3e', 'fd', '5e', 'c1', '12', 'db', '4d', '6a', 'eb', 
+         'f8', 'bd', '63', 'e7', '9c', 'ed', 'b5', '7d', '5c', '58', 'c6', '7a', '79', '64', '32', 'c4', 
+         '98', '4c', 'cc', '87', 'e3', 'd8', '08', '16', '1d', '1e', '36', 'ba', '3d', '1b', 'ea', '80']
+
+# P_BOX = [29, 14, 25,  7, 15,  3, 27,  1, 
+#          31, 22,  9, 21, 10,  4, 13, 11, 
+#          16,  8, 20, 28, 30,  2, 23, 12, 
+#          26, 18,  5, 19,  0, 24, 17,  6]
+
+P_BOX = [0, 1, 2, 3, 4, 5, 6, 7, 8,
+         9, 10, 11, 12, 13, 14, 15, 16,
+         17, 18, 19, 20, 21, 22, 23, 24,
+         25, 26, 27, 28, 29, 30, 31]
 
 class RoundFunction():
 
@@ -106,15 +132,35 @@ class RoundFunction():
     
 
     def substitution(self, input):
-        pass
+        result = b''
+        input_int = int.from_bytes(input, byteorder='big')
+        for i in range(0, input_int.bit_length(), 8):
+            chunk1 = (input_int >> i) & 0b1111          # col
+            chunk2 = (input_int >> ((i+4)%128)) & 0b1111  # row
+            index = chunk2 * 16 + chunk1
+            result += bytes.fromhex(S_BOX[index])
+        return result[::-1]
 
 
     def inverse_substitution(self, input):
-        pass
+        result = b''
+        for i in range(len(input)):
+            index = S_BOX.index(hex(input[i])[2:].zfill(2))
+            row = index // 16
+            col = index % 16
+            result += int.to_bytes((row << 4) + col, 1, byteorder='big')
+        return result
             
     
     def permutation(self, input):
-        pass
+        result = b''
+        input_int = int.from_bytes(input, byteorder='big')
+        permutation = [(input_int >> 4*i) & 0b1111 for i in P_BOX]
+        permutation = permutation[::-1]
+        reduced = [permutation[i] ^ permutation[31-i] for i in range(16)]
+        for i in range(0, len(reduced), 2):
+            result += int.to_bytes((reduced[i] << 4) + reduced[i+1], 1, byteorder='big')
+        return result
 
 
     def inverse_permutation(self, input):
@@ -126,23 +172,46 @@ class RoundFunction():
 TESTING
 """
 roundfunction = RoundFunction('12345678', 0x12345678, 1, 1)
-print(b'hellohan')
-print(int.from_bytes(b'hellohan', byteorder='big'))
-print()
+print(b'hellowor')
+print(int.from_bytes(b'hellowor', byteorder='big'))
+print("\n")
 
-a = roundfunction.expand_bits(b'hellohan')
+a = roundfunction.expand_bits(b'13520046')
 print("expanded     : ", a)
 print("bit length   : ", int.from_bytes(a, byteorder='big').bit_length())
 for x in a:
     print(x, end=' ')
-print()
+print("\n")
 
 b = roundfunction.compress_bits(a)
 print("compressed   : ", b)
 print("bit length   : ", int.from_bytes(b, byteorder='big').bit_length())
 for x in b:
     print(x, end=' ')
-print()
+print("\n")
+
+a = roundfunction.substitution(b'hansel13520046k1')
+print("substitution : ", a)
+print("bit length   : ", int.from_bytes(a, byteorder='big').bit_length())
+for x in a:
+    print(x, end=' ')
+print("\n")
+
+b = roundfunction.inverse_substitution(a)
+print("inverse sub  : ", b)
+print("bit length   : ", int.from_bytes(b, byteorder='big').bit_length())
+for x in b:
+    print(x, end=' ')
+print("\n")
+
+a = roundfunction.permutation(b'hansel13520046k1')
+print("permutation  : ", a)
+print("bit length   : ", int.from_bytes(a, byteorder='big').bit_length())
+for x in a:
+    print(x, end=' ')
+print("\n")
+
+
 
 # def xor_bytes(b1, b2):
 #     # XOR two bytes objects and return a bytes object
