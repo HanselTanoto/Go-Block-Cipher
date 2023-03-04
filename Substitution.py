@@ -34,7 +34,7 @@ def inverseSBox(s_box : list):
     return s_box_inverse
     
 
-s_box = generateSBox("H-2 Menuju UTS Semangat aejdnawndjasndaoewfawefqpr93qr212r", 256)
+s_box = generateSBox("H-2 Menuju UTS Semangat", 256) #256 karakter ASCII
 s_box_inverse = inverseSBox(s_box)
 test_text = b"Berserah diri kepada Tuhan"
 
@@ -46,4 +46,5 @@ test_text = b"Berserah diri kepada Tuhan"
 
 substituted_block = [s_box[b] for b in test_text]
 print(s_box)
-print(s_box_inverse)
+# print(s_box.index(215))
+# print(s_box_inverse)
