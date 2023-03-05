@@ -10,28 +10,42 @@ def generatePBox(seed : str, size : int) -> list:
     
     return p_box
 
-def permute(bit: str, p_box: list):
+def permute(string_byte, p_box: list):
+
+    byte_list = list(string_byte)
+    string_bit = ''.join([bin(byte)[2:].zfill(8) for byte in byte_list])
+
     permuted_block = ""
     for i in range(len(p_box)):
-        permuted_block += bit[p_box[i]-1]
-    
-    return permuted_block
+        permuted_block += string_bit[p_box[i]-1]
+
+    bit_list = [permuted_block[i:i+8] for i in range(0, len(permuted_block), 8)]
+    result_byte_string = bytes([int(b, 2) for b in bit_list])
+
+    return result_byte_string
 
 
-def netralize(bit: str, p_box: list):
+def netralize(string_byte, p_box: list):
+    byte_list = list(string_byte)
+    string_bit = ''.join([bin(byte)[2:].zfill(8) for byte in byte_list])
     backagain_block = ["0" for i in range (128)]
     for i in range(len(p_box)):
-        backagain_block[p_box[i]-1] = bit[i]
+        backagain_block[p_box[i]-1] = string_bit[i]
     
-    return''.join(backagain_block)
+    result_string_bit = ''.join(backagain_block)
     
-p_box = generatePBox("H-2 Menuju UTS Semangat", 128) #128 sesuai dengan jumlah bit
+    bit_list = [result_string_bit[i:i+8] for i in range(0, len(result_string_bit), 8)]
+    result_byte_string = bytes([int(b, 2) for b in bit_list])
+
+    return result_byte_string
+    
+    
+# p_box = generatePBox("H-2 Menuju UTS Semangat", 128) #128 sesuai dengan jumlah bit
 # print(p_box)
-test_block = "11010111010010101011101001110100010101010100101010111010011101001101011101001010101110100111010011010111010010101011101001110100"
-permuted_block = permute(test_block, p_box)
-netralized_block = netralize(permuted_block, p_box)
-print("Test Block : \n" + permuted_block)
-print("Hasil Permutasi : \n" + permuted_block)
-print("Hasil Balikan : \n" + netralized_block )
-print("Hasil sama ? ", test_block == netralized_block)
+# test_block = b'\x01\x23\x45\x67\x89\xab\xcd\xef\xfe\xdc\xba\x98\x76\x54\x32\x10'
+# x = permute(test_block,p_box)
+# y = netralize(x, p_box)
+# print(test_block)
+# print(x)
+# print(y)
 
