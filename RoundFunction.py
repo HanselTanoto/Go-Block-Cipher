@@ -44,29 +44,29 @@ class RoundFunction():
             # print("iteration    : " + str(i))
             # print("current key  : " + self.keyspace[i+1])
             self.key = bytes.fromhex((self.keyspace[i+1])[2:])
-            cipher = self.feistel_round()
+            cipher = self.feistel_round(cipher)
         self.ciphertext = cipher
 
 
     def decrypt(self):
-        plaintext = self.ciphertext
+        plain = self.ciphertext
         for i in range(self.rounds):
             # print("iteration    : " + str(i))
             # print("current key  : " + self.keyspace[self.rounds-i])
             self.key = bytes.fromhex((self.keyspace[self.rounds-i])[2:])
-            plaintext = self.feistel_round()
-        self.plaintext = plaintext
+            plain = self.feistel_round(plain)
+        self.plaintext = plain
 
 
-    def feistel_round(self):
+    def feistel_round(self, input):
         if self.mode:
-            left_plain = self.plaintext[:len(self.plaintext)//2]
-            right_plain = self.plaintext[len(self.plaintext)//2:]
+            left_plain = input[:len(self.plaintext)//2]
+            right_plain = input[len(self.plaintext)//2:]
             cipher = right_plain + xor_bytes(self.round_function(right_plain), left_plain)
             return cipher
         else:
-            left_cipher = self.ciphertext[:len(self.ciphertext)//2]
-            right_cipher = self.ciphertext[len(self.ciphertext)//2:]
+            left_cipher = input[:len(self.ciphertext)//2]
+            right_cipher = input[len(self.ciphertext)//2:]
             plain = xor_bytes(self.round_function(left_cipher), right_cipher) + left_cipher
             return plain
 
@@ -164,23 +164,22 @@ def xor_bytes(b1, b2):
 
 """
 TESTING
-"""
 # KEY EXPANSION
 external_key = "H-2 Menuju UTS Semangat Gaes!" ## Kunci 16 karakter atau lebih
-key_expansion = KeyExpansion(external_key, 1)
+key_expansion = KeyExpansion(external_key, 16)
 key_expansion.makeRoundKey()
 print(key_expansion.s_box)
 print(key_expansion.roundKey)
 
 # ENCRYPT
-round_fuction = RoundFunction(b"halokamusiapahah", ['0x482d32204d656e756a75205554532053', '0x3a46b830b1fab934b75572b7eb7fa313'], 1, ENCRYPT)
+round_fuction = RoundFunction(b"halokamusiapahah", key_expansion.roundKey, 16, ENCRYPT)
 round_fuction.encrypt()
 print(round_fuction.plaintext)
 print(round_fuction.ciphertext)
 
 # DECRYPT
-round_fuction = RoundFunction(round_fuction.ciphertext, ['0x482d32204d656e756a75205554532053', '0x3a46b830b1fab934b75572b7eb7fa313'], 1, DECRYPT)
+round_fuction = RoundFunction(round_fuction.ciphertext, key_expansion.roundKey, 16, DECRYPT)
 round_fuction.decrypt()
 print(round_fuction.ciphertext)
 print(round_fuction.plaintext)
-
+"""
