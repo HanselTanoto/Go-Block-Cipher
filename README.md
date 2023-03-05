@@ -19,11 +19,12 @@ This project was created by:
 
 ## Description
 Go-Block Cipher is a simple block cipher algorithm using Feistel Network as the core algorithm. It is a symmetric block cipher algorithm that use 128-bit block size and 128-bit key size. Go-Block Cipher main algorithm consists of an initial permutation, 16 rounds of Feistel Network, and a final substitution. Its Feistel Network and Internal Key Generator are implemented using various substitution and transposition operations which ensure the security of the algorithm based on the principles of diffusion and confusion. Below is the strcuture of the main algorithm and Feitel Network.
-![SS1](./screenshots/main_algo.jpg)
-![SS1](./screenshots/feistel_network.jpg)
+
+<img src="./img/main_algo.jpg" width=48% height=350>
+<img src="./img/feistel_network.jpg" width=48% height=350>
 
 
 ## How to run
-1. Clone this repository
-2. Run the `main.py` program using `py main.py` in the terminal console
+1. Clone this repository and open its directory in the terminal console
+2. Run the `main.py` program using command `python src/main.py` in the terminal console
 3. Go-Block Cipher is ready to use
