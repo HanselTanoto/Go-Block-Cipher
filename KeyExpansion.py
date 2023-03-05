@@ -100,14 +100,20 @@ class KeyExpansion:
 
         for i in range(len(subsKey[0])):             ## XOR elemen subskey ke 0 dan ke 3 untuk mendapatakan xorkey ke 0
             xorValue = int(subsKey[0][i], 16) ^ int(subsKey[3][i], 16) ^ i
-            temp.append(f'{xorValue:x}')
+            if(len(f'{xorValue:x}') == 1):
+                temp.append(f'{0:x}{xorValue:x}')
+            elif(len(f'{xorValue:x}') == 2):
+                temp.append(f'{xorValue:x}')
         xorKey.append(temp)
         temp = []
 
         for i in range(1, len(subsKey)):            ## XOR elemen xorkey ke 0 dan subskey ke 1 untuk mendatkan xorkey ke 1 dst.
             for j in range(len(subsKey)):
                 xorValue = int(subsKey[i][j], 16) ^ int(xorKey[len(xorKey)-1][j], 16) ^ j
-                temp.append(f'{xorValue:x}')
+                if(len(f'{xorValue:x}') == 1):
+                    temp.append(f'{0:x}{xorValue:x}')
+                elif(len(f'{xorValue:x}') == 2):
+                    temp.append(f'{xorValue:x}')
             xorKey.append(temp)
             temp = []
 
@@ -118,7 +124,7 @@ class KeyExpansion:
             xorKey = self.xorSubAndCurrent()
             self.rawCurrentKey = xorKey
             self.concatCurrentKey()
-
+            
 # external_key = "H-2 Menuju UTS Semangat Gaes!" ## Kunci 16 karakter atau lebih
 # key_expansion = KeyExpansion(external_key, 16)
 # key_expansion.makeRoundKey()
