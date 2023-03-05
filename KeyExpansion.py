@@ -119,11 +119,11 @@ class KeyExpansion:
             self.rawCurrentKey = xorKey
             self.concatCurrentKey()
 
-external_key = "H-2 Menuju UTS Semangat Gaes!" ## Kunci 16 karakter atau lebih
-key_expansion = KeyExpansion(external_key, 16)
-key_expansion.makeRoundKey()
-print(key_expansion.s_box)
-print(key_expansion.roundKey)
-print("Internal Key Round 4 = ", key_expansion.getKey(4))
+# external_key = "H-2 Menuju UTS Semangat Gaes!" ## Kunci 16 karakter atau lebih
+# key_expansion = KeyExpansion(external_key, 16)
+# key_expansion.makeRoundKey()
+# print(key_expansion.s_box)
+# print(key_expansion.roundKey)
+# print("Internal Key Round 4 = ", key_expansion.getKey(4))
 
 

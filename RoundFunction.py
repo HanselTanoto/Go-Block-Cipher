@@ -1,3 +1,5 @@
+from KeyExpansion import KeyExpansion
+
 ENCRYPT = 1
 DECRYPT = 0
 
@@ -18,21 +20,18 @@ S_BOX = ['ee', 'e0', '9e', '56', '96', '29', 'ce', 'a9', '19', '14', '31', '02',
          'f8', 'bd', '63', 'e7', '9c', 'ed', 'b5', '7d', '5c', '58', 'c6', '7a', '79', '64', '32', 'c4', 
          '98', '4c', 'cc', '87', 'e3', 'd8', '08', '16', '1d', '1e', '36', 'ba', '3d', '1b', 'ea', '80']
 
-# P_BOX = [29, 14, 25,  7, 15,  3, 27,  1, 
-#          31, 22,  9, 21, 10,  4, 13, 11, 
-#          16,  8, 20, 28, 30,  2, 23, 12, 
-#          26, 18,  5, 19,  0, 24, 17,  6]
+P_BOX = [29, 14, 25,  7, 15,  3, 27,  1, 
+         31, 22,  9, 21, 10,  4, 13, 11, 
+         16,  8, 20, 28, 30,  2, 23, 12, 
+         26, 18,  5, 19,  0, 24, 17,  6]
 
-P_BOX = [0, 1, 2, 3, 4, 5, 6, 7, 8,
-         9, 10, 11, 12, 13, 14, 15, 16,
-         17, 18, 19, 20, 21, 22, 23, 24,
-         25, 26, 27, 28, 29, 30, 31]
+
 
 class RoundFunction():
 
     def __init__(self, text, key, rounds, mode):
-        self.plaintext = bytes(text, 'utf-8') if mode else None
-        self.ciphertext = None if mode else bytes(text, 'utf-8')
+        self.plaintext = text if mode else None
+        self.ciphertext = None if mode else text
         self.keyspace = key
         self.key = None
         self.rounds = rounds
@@ -42,7 +41,9 @@ class RoundFunction():
     def encrypt(self):
         cipher = self.plaintext
         for i in range(self.rounds):
-            self.key = self.keyspace[i+1]
+            # print("iteration    : " + str(i))
+            # print("current key  : " + self.keyspace[i+1])
+            self.key = bytes.fromhex((self.keyspace[i+1])[2:])
             cipher = self.feistel_round()
         self.ciphertext = cipher
 
@@ -50,7 +51,9 @@ class RoundFunction():
     def decrypt(self):
         plaintext = self.ciphertext
         for i in range(self.rounds):
-            self.key = self.keyspace[self.rounds-i]
+            # print("iteration    : " + str(i))
+            # print("current key  : " + self.keyspace[self.rounds-i])
+            self.key = bytes.fromhex((self.keyspace[self.rounds-i])[2:])
             plaintext = self.feistel_round()
         self.plaintext = plaintext
 
@@ -59,48 +62,34 @@ class RoundFunction():
         if self.mode:
             left_plain = self.plaintext[:len(self.plaintext)//2]
             right_plain = self.plaintext[len(self.plaintext)//2:]
-            cipher = right_plain + (self.round_function_enc(right_plain, self.key) ^ left_plain)
+            cipher = right_plain + xor_bytes(self.round_function(right_plain), left_plain)
             return cipher
         else:
             left_cipher = self.ciphertext[:len(self.ciphertext)//2]
             right_cipher = self.ciphertext[len(self.ciphertext)//2:]
-            plain = left_cipher + (self.round_function_dec(left_cipher, self.key) ^ right_cipher)
+            plain = xor_bytes(self.round_function(left_cipher), right_cipher) + left_cipher
             return plain
 
 
-    def round_function_enc(self):
+    def round_function(self, input):
         # permutation (switch odd and even bits)
-        cipher = self.switch_bits(self.plaintext)
+        result = self.switch_bits(input)
         # expansion (expand 64 bits to 128 bits)
-        cipher = self.expand_bits(cipher)
+        result = self.expand_bits(result)
         # xor with key
-        cipher = cipher ^ self.key
+        result = xor_bytes(result, self.key)
         # substitution (s-box)
-        cipher = self.substitution(cipher)
+        result = self.substitution(result)
         # permutation
-        cipher = self.permutation(cipher)
-        return cipher
+        result = self.permutation(result)
+        return result
 
 
-    def round_function_dec(self):
-        # inverse permutation
-        plain = self.inverse_permutation(self.ciphertext)
-        # inverse substitution (s-box)
-        plain = self.inverse_substitution(plain)
-        # xor with key
-        plain = plain ^ self.key
-        # inverse expansion (expand 64 bits to 128 bits)
-        plain = self.compress_bits(plain)
-        # inverse permutation (switch odd and even bits)
-        plain = self.switch_bits(plain)
-        return plain
-
-
-    def switch_bits(input):
+    def switch_bits(self, input):
         # switch odd and even bit pairs
-        even_pair = input & 0xCCCCCCCCCCCCCCCC
-        odd_pair  = input & 0x3333333333333333
-        return (even_pair >> 1) | (odd_pair << 1)
+        even_pair = int.from_bytes(input, byteorder='big') & 0xCCCCCCCCCCCCCCCC
+        odd_pair  = int.from_bytes(input, byteorder='big') & 0x3333333333333333
+        return int.to_bytes((even_pair >> 1) | (odd_pair << 1), length=16, byteorder='big')
 
 
     def expand_bits(self, input):
@@ -163,78 +152,35 @@ class RoundFunction():
         return result
 
 
-    def inverse_permutation(self, input):
-        pass
+def xor_bytes(b1, b2):
+    # XOR two bytes objects and return a bytes object
+    i1 = int.from_bytes(b1, 'big')
+    i2 = int.from_bytes(b2, 'big')
+    result = i1 ^ i2
+    num_bytes = max(len(b1), len(b2))
+    return result.to_bytes(num_bytes, 'big')
 
 
 
 """
 TESTING
 """
-roundfunction = RoundFunction('12345678', 0x12345678, 1, 1)
-print(b'hellowor')
-print(int.from_bytes(b'hellowor', byteorder='big'))
-print("\n")
+# KEY EXPANSION
+external_key = "H-2 Menuju UTS Semangat Gaes!" ## Kunci 16 karakter atau lebih
+key_expansion = KeyExpansion(external_key, 1)
+key_expansion.makeRoundKey()
+print(key_expansion.s_box)
+print(key_expansion.roundKey)
 
-a = roundfunction.expand_bits(b'13520046')
-print("expanded     : ", a)
-print("bit length   : ", int.from_bytes(a, byteorder='big').bit_length())
-for x in a:
-    print(x, end=' ')
-print("\n")
+# ENCRYPT
+round_fuction = RoundFunction(b"halokamusiapahah", ['0x482d32204d656e756a75205554532053', '0x3a46b830b1fab934b75572b7eb7fa313'], 1, ENCRYPT)
+round_fuction.encrypt()
+print(round_fuction.plaintext)
+print(round_fuction.ciphertext)
 
-b = roundfunction.compress_bits(a)
-print("compressed   : ", b)
-print("bit length   : ", int.from_bytes(b, byteorder='big').bit_length())
-for x in b:
-    print(x, end=' ')
-print("\n")
+# DECRYPT
+round_fuction = RoundFunction(round_fuction.ciphertext, ['0x482d32204d656e756a75205554532053', '0x3a46b830b1fab934b75572b7eb7fa313'], 1, DECRYPT)
+round_fuction.decrypt()
+print(round_fuction.ciphertext)
+print(round_fuction.plaintext)
 
-a = roundfunction.substitution(b'hansel13520046k1')
-print("substitution : ", a)
-print("bit length   : ", int.from_bytes(a, byteorder='big').bit_length())
-for x in a:
-    print(x, end=' ')
-print("\n")
-
-b = roundfunction.inverse_substitution(a)
-print("inverse sub  : ", b)
-print("bit length   : ", int.from_bytes(b, byteorder='big').bit_length())
-for x in b:
-    print(x, end=' ')
-print("\n")
-
-a = roundfunction.permutation(b'hansel13520046k1')
-print("permutation  : ", a)
-print("bit length   : ", int.from_bytes(a, byteorder='big').bit_length())
-for x in a:
-    print(x, end=' ')
-print("\n")
-
-
-
-# def xor_bytes(b1, b2):
-#     # XOR two bytes objects and return a bytes object
-#     i1 = int.from_bytes(b1, 'big')
-#     i2 = int.from_bytes(b2, 'big')
-#     result = i1 ^ i2
-#     num_bytes = max(len(b1), len(b2))
-#     return result.to_bytes(num_bytes, 'big')
-
-# def str_to_hex(text):
-#     return binascii.hexlify(text.encode('utf-8'))
-
-# def hex_to_str(text):
-#     return binascii.unhexlify(text).decode('utf-8')
-
-# def hex_to_bin(text):
-#     return bin(int(text, 16))[2:].zfill(len(text)*4)
-
-# def bin_to_hex(text):
-#     return hex(int(text, 2))[2:].zfill(2)
-
-# def xor (A, B):
-#     return bytes([a ^ b for a, b in zip(A, B)])
-
-# def byte_to_binary(byte):
-#     return ''.join([bin(b)[2:].zfill(8) for b in byte])
