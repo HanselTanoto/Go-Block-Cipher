@@ -33,7 +33,7 @@ def inverseSBox(s_box : list):
     
     return s_box_inverse
 
-def substitue(string_byte, s_box:list):
+def substitute(string_byte, s_box:list):
     result = b''
     for b in string_byte:
         result += bytes.fromhex(s_box[b])
@@ -51,7 +51,7 @@ def reverse(string_byte, s_box:list):
 # s_box_inverse = inverseSBox(s_box)
 # test_text = b"Berserah diri keawedawedawedpada Tuhan"
 
-# x = substitue(test_text,s_box)
+# x = substitute(test_text,s_box)
 # y = reverse(x, s_box)
 
 '''
