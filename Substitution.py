@@ -47,19 +47,19 @@ def reverse(string_byte, s_box:list):
     return result
     
 
-s_box = generateSBox("H-2 Menuju UTS Semangat", 256)
-#s_box_inverse = inverseSBox(s_box)
-test_text = b"Berserah diri keawedawedawedpada Tuhan"
+# s_box = generateSBox("H-2 Menuju UTS Semangat", 256)
+# s_box_inverse = inverseSBox(s_box)
+# test_text = b"Berserah diri keawedawedawedpada Tuhan"
 
-x = substitue(test_text,s_box)
-y = reverse(x, s_box)
+# x = substitue(test_text,s_box)
+# y = reverse(x, s_box)
 
 '''
     Substitusi dilakukan dengan iterasi nilai byte pada teks.
     Dan digunakan sebagai indeks untuk mendapatkan nilai pada
     S-Box
 '''
-#substituted_block = [s_box[b] for b in test_text]
+# substituted_block = [s_box[b] for b in test_text]
 # print(s_box)
 # print(len(s_box))
 # print(s_box.index(215))
